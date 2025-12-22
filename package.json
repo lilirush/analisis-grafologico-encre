@@ -1,0 +1,12 @@
+{
+  "name": "analisis-grafologico",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "cors": "^2.8.5",
+    "openai": "^4.0.0"
+  }
+}
