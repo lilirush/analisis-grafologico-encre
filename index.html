@@ -1,11 +1,5 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Análisis Grafológico Encre</title>
-</head>
-<body>
-  <h1>Análisis Grafológico Encre</h1>
-  <p>Tu análisis grafológico profesional.</p>
-</body>
-</html>
+<form action="/upload" method="POST" enctype="multipart/form-data">
+  <label>Subí una imagen de tu escritura:</label><br>
+  <input type="file" name="archivo" accept="image/*" required><br><br>
+  <button type="submit">Enviar para análisis</button>
+</form>
