@@ -95,9 +95,6 @@ const response = await openai.responses.create({
   ]
 });
 
-const informe = response.output_text;
-
-
     // Limpiar archivo temporal
     fs.unlinkSync(tempPath);
 
