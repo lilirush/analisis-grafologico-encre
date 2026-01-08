@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Carpeta pública
-app.use(express.static("public"));
+//app.use(express.static("public"));
 
 // Configuración de subida de archivos
 const storage = multer.diskStorage({
@@ -32,6 +32,6 @@ app.listen(PORT, () => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
