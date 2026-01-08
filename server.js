@@ -37,9 +37,27 @@ app.post("/analizar", async (req, res) => {
     }
 
     const file = req.files.file;
+
+    // Validar tipo MIME
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "application/pdf"
+    ];
+
+    if (!allowedTypes.includes(file.mimetype)) {
+      return res.status(400).json({ error: "Solo se permiten imágenes (JPG, PNG) o PDF." });
+    }
+
     const tempPath = path.join(tempDir, `${Date.now()}-${file.name}`);
     await file.mv(tempPath);
 
+    // ⚠️ Si es PDF, habría que convertirlo a imagen antes de enviarlo a OpenAI
+    if (file.mimetype === "application/pdf") {
+      return res.status(400).json({ error: "PDF detectado: aún no se puede procesar PDFs directamente." });
+    }
+
+    // Convertir imagen a base64
     const imageBuffer = fs.readFileSync(tempPath);
     const base64Image = imageBuffer.toString("base64");
 
