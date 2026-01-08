@@ -32,6 +32,6 @@ app.listen(PORT, () => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "grafologia-form.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
