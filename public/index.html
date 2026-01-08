@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Análisis Grafológico</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Análisis grafológico profesional</h1>
+  <p>Subí una imagen clara de la escritura para obtener tu informe.</p>
+
+  <form id="form">
+    <input type="file" name="file" accept="image/jpeg,image/png" required>
+    <br><br>
+    <button type="submit">Analizar escritura</button>
+  </form>
+
+  <h2>Informe</h2>
+  <pre id="result"></pre>
+
+  <script>
+    const form = document.getElementById("form");
+    const result = document.getElementById("result");
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const data = new FormData(form);
+
+      result.textContent = "Procesando...";
+
+      try {
+        const res = await fetch("/analizar", { method: "POST", body: data });
+        const json = await res.json();
+        if(json.error){
+          result.textContent = "Error: " + json.error;
+        } else {
+          result.textContent = json.informe;
+        }
+      } catch(err) {
+        result.textContent = "Error de conexión.";
+      }
+    });
+  </script>
+</body>
+</html>
