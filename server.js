@@ -5,7 +5,6 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { OpenAI } from "openai";
-// import { convert } from "pdf-poppler"; // solo si querés habilitar PDFs
 
 // Config para __dirname con ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -42,89 +41,79 @@ app.post("/analizar", async (req, res) => {
     const file = req.files.file;
 
     // Tipos permitidos
-    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    const allowedTypes = ["image/jpeg", "image/png"];
     if (!allowedTypes.includes(file.mimetype)) {
-      return res.status(400).json({ error: "Solo se permiten imágenes o PDFs." });
+      return res.status(400).json({ error: "Solo se permiten imágenes JPG o PNG." });
     }
 
     // Guardar temporalmente
-    let tempPath = path.join(tempDir, `${Date.now()}-${file.name}`);
+    const tempPath = path.join(tempDir, `${Date.now()}-${file.name}`);
     await file.mv(tempPath);
-
-    // Logging detallado para depuración
-    console.log("Archivo subido:", file.name);
-    console.log("Ruta temporal:", tempPath);
-    console.log("Tamaño (bytes):", fs.statSync(tempPath).size);
-    console.log("Mimetype:", file.mimetype);
-
-    // Si es PDF (aún no convertido)
-    if (file.mimetype === "application/pdf") {
-      console.warn("PDF detectado: aún no se procesa automáticamente.");
-      return res.status(400).json({ error: "PDF detectado: aún no se puede procesar PDFs directamente." });
-      // Para habilitar PDF→PNG con poppler-utils, aquí iría la conversión
-    }
 
     // Leer imagen y convertir a base64
     const imageBuffer = fs.readFileSync(tempPath);
     const base64Image = imageBuffer.toString("base64");
 
     const prompt = `
-Sos una grafóloga profesional. Analizá la escritura de la imagen adjunta.
+Sos una grafóloga profesional. Analizá la escritura manuscrita visible en la imagen.
 
-Quiero que detectes:
+Detectá únicamente lo observable:
 - Presión
 - Inclinación
-- Velocidad
+- Tamaño
 - Forma de letras
 - Cohesión de trazos
-- Orden y márgenes
-- Dimensión
-- Rasgos atenuados
-- Perfil predominante
+- Orden, márgenes y espaciado
 
-Y devolvé un informe profesional con:
+Luego entregá:
 1. Rasgos principales
 2. Interpretación técnica
 3. Fortalezas
 4. Aspectos a atender
-5. Síntesis final inspiracional
+5. Síntesis final
 
-Lenguaje: técnico, claro, humano, profesional.
-No inventes contenido imposible de ver.
+No infieras nada que no pueda verse claramente.
+Lenguaje técnico, claro y profesional.
 `;
-    
-const response = await openai.chat.completions.create({
-  model: "gpt-4o-mini",
-  messages: [
-    {
-      role: "user",
-      content: [
-        { type: "text", text: prompt },
+
+    // 🔥 RESPONSES API (la clave)
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
         {
-          type: "image_url",
-          image_url: {
-            url: `data:image/jpeg;base64,${base64Image}`
-          }
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: prompt
+            },
+            {
+              type: "input_image",
+              image_base64: base64Image
+            }
+          ]
         }
       ]
-    }
-  ]
-});
+    });
 
-
-    // Borrar temporal
+    // Limpiar archivo temporal
     fs.unlinkSync(tempPath);
 
-    res.json({ informe: response.choices[0].message.content });
+    // Texto final
+    const informe = response.output_text;
+
+    res.json({ informe });
 
   } catch (error) {
     console.error("ERROR DETECTADO:", error);
     res.status(500).json({
-      error: error.message || "Hubo un problema procesando el archivo."
+      error: error.message || "Hubo un problema procesando la imagen."
     });
   }
 });
 
-// Puerto Render
+// Puerto
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor funcionando en puerto ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Servidor funcionando en puerto ${PORT}`)
+);
