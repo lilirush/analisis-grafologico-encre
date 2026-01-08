@@ -92,19 +92,25 @@ Y devolvé un informe profesional con:
 Lenguaje: técnico, claro, humano, profesional.
 No inventes contenido imposible de ver.
 `;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
+    
+const response = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [
+    {
+      role: "user",
+      content: [
+        { type: "text", text: prompt },
         {
-          role: "user",
-          content: [
-            { type: "text", text: prompt },
-            { type: "input_image", image_url: `data:image/jpeg;base64,${base64Image}` }
-          ]
+          type: "image_url",
+          image_url: {
+            url: `data:image/jpeg;base64,${base64Image}`
+          }
         }
       ]
-    });
+    }
+  ]
+});
+
 
     // Borrar temporal
     fs.unlinkSync(tempPath);
