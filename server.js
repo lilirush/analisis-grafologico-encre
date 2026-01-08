@@ -5,8 +5,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { OpenAI } from "openai";
+// import { convert } from "pdf-poppler"; // solo si querés habilitar PDFs
 
-// __dirname para ES Modules
+// Config para __dirname con ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -14,22 +15,24 @@ const app = express();
 app.use(cors());
 app.use(fileUpload());
 
-// Carpeta pública para servir frontend
+// Servir carpeta pública
 app.use(express.static(path.join(__dirname, "public")));
 
-// Carpeta temporal para subir imágenes
+// Carpeta temporal
 const tempDir = path.join(__dirname, "temp");
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
 // OpenAI
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 // Servir index.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Ruta POST para analizar imagen
+// Ruta principal
 app.post("/analizar", async (req, res) => {
   try {
     if (!req.files || !req.files.file) {
@@ -38,26 +41,30 @@ app.post("/analizar", async (req, res) => {
 
     const file = req.files.file;
 
-    // Validar tipo MIME
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "application/pdf"
-    ];
-
+    // Tipos permitidos
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
     if (!allowedTypes.includes(file.mimetype)) {
-      return res.status(400).json({ error: "Solo se permiten imágenes (JPG, PNG) o PDF." });
+      return res.status(400).json({ error: "Solo se permiten imágenes o PDFs." });
     }
 
-    const tempPath = path.join(tempDir, `${Date.now()}-${file.name}`);
+    // Guardar temporalmente
+    let tempPath = path.join(tempDir, `${Date.now()}-${file.name}`);
     await file.mv(tempPath);
 
-    // ⚠️ Si es PDF, habría que convertirlo a imagen antes de enviarlo a OpenAI
+    // Logging detallado para depuración
+    console.log("Archivo subido:", file.name);
+    console.log("Ruta temporal:", tempPath);
+    console.log("Tamaño (bytes):", fs.statSync(tempPath).size);
+    console.log("Mimetype:", file.mimetype);
+
+    // Si es PDF (aún no convertido)
     if (file.mimetype === "application/pdf") {
+      console.warn("PDF detectado: aún no se procesa automáticamente.");
       return res.status(400).json({ error: "PDF detectado: aún no se puede procesar PDFs directamente." });
+      // Para habilitar PDF→PNG con poppler-utils, aquí iría la conversión
     }
 
-    // Convertir imagen a base64
+    // Leer imagen y convertir a base64
     const imageBuffer = fs.readFileSync(tempPath);
     const base64Image = imageBuffer.toString("base64");
 
@@ -99,13 +106,16 @@ No inventes contenido imposible de ver.
       ]
     });
 
+    // Borrar temporal
     fs.unlinkSync(tempPath);
 
     res.json({ informe: response.choices[0].message.content });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Hubo un problema procesando el archivo." });
+    console.error("ERROR DETECTADO:", error);
+    res.status(500).json({
+      error: error.message || "Hubo un problema procesando el archivo."
+    });
   }
 });
 
