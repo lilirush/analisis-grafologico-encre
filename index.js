@@ -30,3 +30,8 @@ app.post("/upload", upload.single("archivo"), (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor activo en puerto ${PORT}`);
 });
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "grafologia-form.html"));
+});
+
