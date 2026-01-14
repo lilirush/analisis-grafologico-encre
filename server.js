@@ -77,7 +77,7 @@ Lenguaje técnico, claro y profesional.
 `;
 
 const response = await openai.responses.create({
-  model: "gpt-4.1-mini",
+  model: "gpt-5.2",
   input: [
     {
       role: "user",
