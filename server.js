@@ -55,45 +55,56 @@ app.post("/analizar", async (req, res) => {
     const base64Image = imageBuffer.toString("base64");
 
     const prompt = `
-Sos una grafóloga profesional. Analizá la escritura manuscrita visible en la imagen.
+Actuás como una profesional especializada en análisis de personalidad a partir de la escritura manuscrita.
 
-Detectá únicamente lo observable:
-- Presión
-- Inclinación
-- Tamaño
-- Forma de letras
-- Cohesión de trazos
-- Orden, márgenes y espaciado
+A partir de lo observable en la imagen, elaborá un informe de personalidad con enfoque psicológico y laboral.
+No utilices tecnicismos grafológicos ni menciones indicadores técnicos específicos.
+No infieras patologías ni afirmes rasgos que no puedan vincularse claramente con lo observado.
 
-Luego entregá:
-1. Rasgos principales
-2. Interpretación técnica
-3. Fortalezas
-4. Aspectos a atender
-5. Síntesis final
+El informe debe estar redactado en un lenguaje claro, profesional y comprensible para la persona evaluada,
+con un tono respetuoso, descriptivo y orientado al desarrollo personal y profesional.
 
-No infieras nada que no pueda verse claramente.
-Lenguaje técnico, claro y profesional.
+Estructurá el informe en los siguientes apartados:
+
+1. Perfil general de personalidad  
+Descripción sintética del estilo personal predominante, forma de vincularse con el entorno y modo habitual de actuar.
+
+2. Funcionamiento emocional y conductual  
+Cómo gestiona sus emociones, su nivel de energía, iniciativa, autocontrol y respuesta ante exigencias o presión.
+
+3. Estilo de trabajo  
+Forma de organizarse, tomar decisiones, asumir responsabilidades, interactuar con otros y afrontar desafíos laborales.
+
+4. Fortalezas principales  
+Recursos personales que favorecen su desempeño profesional y su aporte a equipos o roles laborales.
+
+5. Aspectos a desarrollar o equilibrar  
+Áreas de mejora planteadas de manera constructiva, como oportunidades de crecimiento personal y profesional.
+
+6. Síntesis final  
+Conclusión integradora del perfil, con foco en su potencial y proyección laboral.
+
+El informe debe ser coherente, ético, claro y orientado al contexto laboral.
 `;
 
-const response = await openai.responses.create({
-  model: "gpt-5.2",
-  input: [
-    {
-      role: "user",
-      content: [
+    const response = await openai.responses.create({
+      model: "gpt-5.2",
+      input: [
         {
-          type: "input_text",
-          text: prompt
-        },
-        {
-          type: "input_image",
-          image_url: `data:image/jpeg;base64,${base64Image}`
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: prompt
+            },
+            {
+              type: "input_image",
+              image_url: `data:image/jpeg;base64,${base64Image}`
+            }
+          ]
         }
       ]
-    }
-  ]
-});
+    });
 
     // Limpiar archivo temporal
     fs.unlinkSync(tempPath);
